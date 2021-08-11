@@ -17,7 +17,7 @@ struct Record: Codable, Identifiable {
 	}
 }
 
-actor RecordsModel: Codable {
+actor RecordsModel: Decodable {
 	var records: [Record] = []
 	
 	enum CodingKeys: String, CodingKey {
