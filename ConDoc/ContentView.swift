@@ -8,12 +8,12 @@
 import SwiftUI
 
 struct ContentView: View {
-    @EnvironmentObject var document: Document
-
-    var body: some View {
+	@EnvironmentObject var document: Document
+	
+	var body: some View {
 		VStack {
 			Button("Add new value") {
-				document.content?.addValue()
+				document.content?.addRecord()
 			}
 			if let content = document.content {
 				RecordsView(content: content)
@@ -30,7 +30,9 @@ struct RecordsView: View {
 	
 	var body: some View {
 		VStack {
-			ForEach(content.records) { Text("\($0.value)") }
+			ForEach(content.records) {
+				Text("\($0.value)")
+			}
 		}
 	}
 }

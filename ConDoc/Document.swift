@@ -1,5 +1,5 @@
 //
-//  ConDocDocument.swift
+//  Document.swift
 //  ConDoc
 //
 //  Created by Philip Pegden on 11/08/2021.
@@ -9,9 +9,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 extension UTType {
-    static var conDocExample: UTType {
-        UTType(importedAs: "com.example.conDoc")
-    }
+    static var conDocExample: UTType { UTType(importedAs: "com.example.condoc") }
 }
 
 final class Document: ReferenceFileDocument {	
@@ -30,13 +28,17 @@ final class Document: ReferenceFileDocument {
 			throw CocoaError(.fileReadCorruptFile)
 		}
 		let decoder = JSONDecoder()
-		let store = try decoder.decode(Records.self, from: data)
-		Task { self.content = await RecordsViewModel(fromStore: store) }
+		let store = try decoder.decode(RecordsModel.self, from: data)
+		Task { self.content = await RecordsViewModel(fromRecordsModel: store) }
 	}
 	
 	struct DocumentSnapshot { var data: Data }
 	
-	func snapshot(contentType: UTType) throws -> DocumentSnapshot { DocumentSnapshot(data: Data()) }
+	func snapshot(contentType: UTType) throws -> DocumentSnapshot {
+		// Waiting to add Encodable conformance to RecordsModel
+		DocumentSnapshot(data: Data())
+		
+	}
 	
 	func fileWrapper(snapshot: DocumentSnapshot, configuration: WriteConfiguration) throws -> FileWrapper {
 		FileWrapper(regularFileWithContents: snapshot.data)

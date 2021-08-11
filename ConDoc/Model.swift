@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import SwiftUI
 
 struct Record: Codable, Identifiable {
 	let id: UUID
@@ -18,7 +17,7 @@ struct Record: Codable, Identifiable {
 	}
 }
 
-actor Records: Decodable {
+actor RecordsModel: Decodable {
 	var records: [Record] = []
 	
 	enum CodingKeys: String, CodingKey {
@@ -32,12 +31,13 @@ actor Records: Decodable {
 		self.records = try values.decode([Record].self, forKey: .records)
 	}
 	
+	// Unable to conform to Encodable at present with this implementation
 	func encode(to encoder: Encoder) throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(records, forKey: .records)
 	}
 		
-	func addValue() -> [Record] {
+	func addRecord() -> [Record] {
 		self.records.append(Record(value: Int.random(in: 0...10))) // Assume it takes a long time to compute `value`
 		return self.records
 	}
@@ -46,21 +46,22 @@ actor Records: Decodable {
 @MainActor
 class RecordsViewModel: ObservableObject {
 	@Published var records: [Record]
-	private let store: Records
+	private let recordsModel: RecordsModel
 	
 	init() {
 		self.records = []
-		self.store = Records()
+		self.recordsModel = RecordsModel()
 	}
 	
-	init(fromStore store: Records) async {
-		self.records = await store.records
-		self.store = store
+	init(fromRecordsModel recordsModel: RecordsModel) async {
+		self.records = await recordsModel.records
+		self.recordsModel = recordsModel
 	}
 	
-	func addValue() {
+	func addRecord() {
+		// Given addRecord takes time to complete, we run it in the background
 		Task {
-			self.records = await store.addValue()
+			self.records = await recordsModel.addRecord()
 		}
 	}
 }
