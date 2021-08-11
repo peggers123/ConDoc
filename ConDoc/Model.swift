@@ -17,7 +17,7 @@ struct Record: Codable, Identifiable {
 	}
 }
 
-actor RecordsModel: Decodable {
+actor RecordsModel: Codable {
 	var records: [Record] = []
 	
 	enum CodingKeys: String, CodingKey {
@@ -32,7 +32,7 @@ actor RecordsModel: Decodable {
 	}
 	
 	// Unable to conform to Encodable at present with this implementation
-	func encode(to encoder: Encoder) throws {
+	func encode(to encoder: Encoder) async throws {
 		var container = encoder.container(keyedBy: CodingKeys.self)
 		try container.encode(records, forKey: .records)
 	}

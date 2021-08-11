@@ -12,16 +12,15 @@ extension UTType {
     static var conDocExample: UTType { UTType(importedAs: "com.example.condoc") }
 }
 
-final class Document: ReferenceFileDocument {	
-	typealias Snapshot = DocumentSnapshot
-	
-	static var readableContentTypes: [UTType] { [.conDocExample] }
+final class Document: ReferenceFileDocument {
 	
 	@Published var content: RecordsViewModel?
 	
 	init() {
 		Task { await MainActor.run { self.content = RecordsViewModel() } }
 	}
+	
+	static var readableContentTypes: [UTType] { [.conDocExample] }
 	
 	init(configuration: ReadConfiguration) throws {
 		guard let data = configuration.file.regularFileContents else {
@@ -33,6 +32,8 @@ final class Document: ReferenceFileDocument {
 	}
 	
 	struct DocumentSnapshot { var data: Data }
+	
+	typealias Snapshot = DocumentSnapshot
 	
 	func snapshot(contentType: UTType) throws -> DocumentSnapshot {
 		// Waiting to add Encodable conformance to RecordsModel
