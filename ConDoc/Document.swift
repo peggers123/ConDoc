@@ -14,11 +14,9 @@ extension UTType {
 
 final class Document: ReferenceFileDocument {
 	
-	@Published var content: RecordsViewModel?
+	@Published var content: Records
 	
-	init() {
-		Task { await MainActor.run { self.content = RecordsViewModel() } }
-	}
+	init() { self.content = Records() }
 	
 	static var readableContentTypes: [UTType] { [.conDocExample] }
 	
@@ -26,9 +24,7 @@ final class Document: ReferenceFileDocument {
 		guard let data = configuration.file.regularFileContents else {
 			throw CocoaError(.fileReadCorruptFile)
 		}
-		let decoder = JSONDecoder()
-		let store = try decoder.decode(RecordsModel.self, from: data)
-		Task { self.content = await RecordsViewModel(fromRecordsModel: store) }
+		self.content = try JSONDecoder().decode(Records.self, from: data)
 	}
 	
 	struct DocumentSnapshot { var data: Data }
@@ -36,9 +32,7 @@ final class Document: ReferenceFileDocument {
 	typealias Snapshot = DocumentSnapshot
 	
 	func snapshot(contentType: UTType) throws -> DocumentSnapshot {
-		// Waiting to add Encodable conformance to RecordsModel
-		DocumentSnapshot(data: Data())
-		
+		DocumentSnapshot(data: try JSONEncoder().encode(self.content))
 	}
 	
 	func fileWrapper(snapshot: DocumentSnapshot, configuration: WriteConfiguration) throws -> FileWrapper {

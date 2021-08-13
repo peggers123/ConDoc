@@ -12,12 +12,8 @@ struct ContentView: View {
 	
 	var body: some View {
 		VStack {
-			Button("Add new value") {
-				document.content?.addRecord()
-			}
-			if let content = document.content {
-				RecordsView(content: content)
-			}
+			Button("Add new value") { document.content.addRecord() }
+			if let content = document.content { RecordsView(content: content) }
 			Spacer()
 		}
 		.padding()
@@ -26,7 +22,7 @@ struct ContentView: View {
 }
 
 struct RecordsView: View {
-	@ObservedObject var content: RecordsViewModel
+	@ObservedObject var content: Records
 	
 	var body: some View {
 		VStack {

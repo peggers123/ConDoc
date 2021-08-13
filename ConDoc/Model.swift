@@ -7,61 +7,59 @@
 
 import Foundation
 
+@globalActor
+struct MyActor {
+	actor ActorType { }
+	
+	static let shared: ActorType = ActorType()
+}
+
 struct Record: Codable, Identifiable {
 	let id: UUID
 	var value: Int
 	
-	init(value: Int) {
+	init(_ value: Int) {
 		self.id = UUID()
 		self.value = value
 	}
 }
 
-actor RecordsModel: Decodable {
-	var records: [Record] = []
-	
-	enum CodingKeys: String, CodingKey {
-		case records
-	}
-	
-	init() {}
-	
-	init(from decoder: Decoder) async throws {
-		let values = try decoder.container(keyedBy: CodingKeys.self)
-		self.records = try values.decode([Record].self, forKey: .records)
-	}
-	
-	// Unable to conform to Encodable at present with this implementation
-	func encode(to encoder: Encoder) async throws {
-		var container = encoder.container(keyedBy: CodingKeys.self)
-		try container.encode(records, forKey: .records)
-	}
-		
-	func addRecord() -> [Record] {
-		self.records.append(Record(value: Int.random(in: 0...10))) // Assume it takes a long time to compute `value`
-		return self.records
-	}
-}
-
-@MainActor
-class RecordsViewModel: ObservableObject {
+final class Records: ObservableObject, Codable {
 	@Published var records: [Record]
-	private let recordsModel: RecordsModel
+	@MyActor private var iRecords: [Record]
 	
 	init() {
 		self.records = []
-		self.recordsModel = RecordsModel()
+		self.iRecords = []
 	}
 	
-	init(fromRecordsModel recordsModel: RecordsModel) async {
-		self.records = await recordsModel.records
-		self.recordsModel = recordsModel
+	enum CodingKeys: String, CodingKey { case records }
+	
+	init(from decoder: Decoder) throws {
+		let values = try decoder.container(keyedBy: CodingKeys.self)
+		let records = try values.decode([Record].self, forKey: .records)
+		self.iRecords = records
+		self.records = records
+	}
+	
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.container(keyedBy: CodingKeys.self)
+		try container.encode(records, forKey: .records)
+	}
+	
+	@MyActor
+	func append(_ value: Int) -> [Record] {
+		self.iRecords.append(Record(value))
+		return iRecords
 	}
 	
 	func addRecord() {
-		// Given addRecord takes time to complete, we run it in the background
-		Task {
-			self.records = await recordsModel.addRecord()
+		Task() {
+			let newNumber = Int.random(in: 0...10) // Assume lots of processing here, hence we run it as a Task
+			let newRecords = await self.append(newNumber)
+			await MainActor.run { self.records = newRecords }
 		}
 	}
+	
+	
 }
